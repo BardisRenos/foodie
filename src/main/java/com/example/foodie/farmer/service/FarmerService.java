@@ -4,6 +4,7 @@ import com.example.foodie.farmer.dto.FarmerDto;
 import com.example.foodie.farmer.internal.Farmer;
 import com.example.foodie.farmer.internal.FarmerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -31,12 +32,14 @@ public class FarmerService {
         return toResponse(farmerRepository.save(farmer));
     }
 
+    @Cacheable(value = "farmers", key = "#id")
     public FarmerDto.FarmerResponse findById(String id) {
         return farmerRepository.findById(id)
             .map(this::toResponse)
             .orElseThrow(() -> new RuntimeException("Farmer not found: " + id));
     }
 
+    @Cacheable(value = "farmers", key = "'verified'")
     public List<FarmerDto.FarmerResponse> findVerified() {
         return farmerRepository.findByVerifiedTrue().stream().map(this::toResponse).toList();
     }

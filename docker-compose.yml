@@ -1,0 +1,93 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: foodie-postgres
+    environment:
+      POSTGRES_DB: foodiedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-uat:
+    image: postgres:16-alpine
+    container_name: foodie-postgres-uat
+    environment:
+      POSTGRES_DB: foodiedb_uat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_uat_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  foodie-dev:
+    build: .
+    container_name: foodie-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "8080:8080"
+    profiles:
+      - dev
+
+  foodie-uat:
+    build: .
+    container_name: foodie-uat
+    environment:
+      SPRING_PROFILES_ACTIVE: uat
+      DB_USERNAME: postgres
+      DB_PASSWORD: secret
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-uat:5432/foodiedb_uat
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres-uat:
+        condition: service_healthy
+    profiles:
+      - uat
+
+  foodie-prod:
+    build: .
+    container_name: foodie-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_USERNAME: postgres
+      DB_PASSWORD: secret
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/foodiedb
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: foodie-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    profiles:
+      - uat
+      - prod
+
+volumes:
+  postgres_data:
+  postgres_uat_data:
+  redis_data:

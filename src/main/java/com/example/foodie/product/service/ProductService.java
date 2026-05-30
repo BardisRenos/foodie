@@ -5,6 +5,8 @@ import com.example.foodie.product.internal.Category;
 import com.example.foodie.product.internal.Product;
 import com.example.foodie.product.internal.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -14,6 +16,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDto.ProductResponse create(ProductDto.CreateRequest request) {
         Product p = new Product();
         p.setName(request.name());
@@ -33,6 +36,7 @@ public class ProductService {
             .orElseThrow(() -> new RuntimeException("Product not found: " + id));
     }
 
+    @Cacheable(value = "products", key = "'all'")
     public List<ProductDto.ProductResponse> findAvailable() {
         return productRepository.findByAvailableTrue().stream().map(this::toResponse).toList();
     }
@@ -41,11 +45,13 @@ public class ProductService {
         return productRepository.findByFarmerId(farmerId).stream().map(this::toResponse).toList();
     }
 
+    @Cacheable(value = "products", key = "'category_' + #category")
     public List<ProductDto.ProductResponse> findByCategory(String category) {
         return productRepository.findByAvailableTrueAndCategory(Category.valueOf(category.toUpperCase()))
             .stream().map(this::toResponse).toList();
     }
 
+    @Cacheable(value = "products", key = "'search_' + #query")
     public List<ProductDto.ProductResponse> search(String query) {
         return productRepository.search(query).stream().map(this::toResponse).toList();
     }
