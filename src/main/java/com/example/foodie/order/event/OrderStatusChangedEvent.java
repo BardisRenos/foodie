@@ -1,4 +1,4 @@
-package com.example.foodie.order;
+package com.example.foodie.order.event;
 
 /**
  * Published when an order status changes.

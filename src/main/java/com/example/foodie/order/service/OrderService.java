@@ -1,7 +1,7 @@
 package com.example.foodie.order.service;
 
-import com.example.foodie.order.OrderPlacedEvent;
-import com.example.foodie.order.OrderStatusChangedEvent;
+import com.example.foodie.order.event.OrderPlacedEvent;
+import com.example.foodie.order.event.OrderStatusChangedEvent;
 import com.example.foodie.order.dto.OrderDto;
 import com.example.foodie.order.internal.Order;
 import com.example.foodie.order.internal.OrderItem;

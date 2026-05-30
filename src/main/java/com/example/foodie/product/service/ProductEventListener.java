@@ -1,7 +1,6 @@
 package com.example.foodie.product.service;
 
-import com.example.foodie.order.OrderPlacedEvent;
-import com.example.foodie.product.internal.Product;
+import com.example.foodie.order.event.OrderPlacedEvent;
 import com.example.foodie.product.internal.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.ApplicationModuleListener;

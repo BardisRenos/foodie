@@ -1,12 +1,13 @@
 package com.example.foodie.product.internal;
 
-import com.example.foodie.product.internal.Category;
-import com.example.foodie.product.internal.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 
+@Repository
 public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByFarmerId(String farmerId);
     List<Product> findByCategory(Category category);

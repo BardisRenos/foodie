@@ -3,19 +3,17 @@ package com.example.foodie.order.controller;
 import com.example.foodie.order.dto.OrderDto;
 import com.example.foodie.order.service.OrderService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
-
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
 
     @PostMapping
     public ResponseEntity<OrderDto.OrderResponse> place(@Valid @RequestBody OrderDto.PlaceOrderRequest request) {

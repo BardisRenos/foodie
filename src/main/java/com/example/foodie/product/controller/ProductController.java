@@ -3,19 +3,17 @@ package com.example.foodie.product.controller;
 import com.example.foodie.product.dto.ProductDto;
 import com.example.foodie.product.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @PostMapping
     public ResponseEntity<ProductDto.ProductResponse> create(@Valid @RequestBody ProductDto.CreateRequest request) {

@@ -3,19 +3,17 @@ package com.example.foodie.review.controller;
 import com.example.foodie.review.dto.ReviewDto;
 import com.example.foodie.review.service.ReviewService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/reviews")
 public class ReviewController {
 
     private final ReviewService reviewService;
-
-    public ReviewController(ReviewService reviewService) {
-        this.reviewService = reviewService;
-    }
 
     @PostMapping
     public ResponseEntity<ReviewDto.ReviewResponse> create(@Valid @RequestBody ReviewDto.CreateRequest request) {

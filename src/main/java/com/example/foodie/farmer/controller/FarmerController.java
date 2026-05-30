@@ -3,19 +3,17 @@ package com.example.foodie.farmer.controller;
 import com.example.foodie.farmer.dto.FarmerDto;
 import com.example.foodie.farmer.service.FarmerService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class FarmerController {
 
     private final FarmerService farmerService;
-
-    public FarmerController(FarmerService farmerService) {
-        this.farmerService = farmerService;
-    }
 
     @PostMapping("/auth/farmers/register")
     public ResponseEntity<FarmerDto.FarmerResponse> register(@Valid @RequestBody FarmerDto.RegisterRequest request) {

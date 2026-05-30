@@ -1,7 +1,7 @@
 package com.example.foodie.notification.service;
 
-import com.example.foodie.order.OrderPlacedEvent;
-import com.example.foodie.order.OrderStatusChangedEvent;
+import com.example.foodie.order.event.OrderPlacedEvent;
+import com.example.foodie.order.event.OrderStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
