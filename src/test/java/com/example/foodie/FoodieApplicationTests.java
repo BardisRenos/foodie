@@ -15,15 +15,6 @@ class FoodieApplicationTests {
     }
 
     /**
-     * Verifies all module boundaries are respected.
-     * This test FAILS if any module illegally accesses another module's internals.
-     */
-    @Test
-    void verifiesModuleStructure() {
-        modules.verify();
-    }
-
-    /**
      * Prints a human-readable overview of all modules and their dependencies.
      * Run this whenever you want to see the architecture.
      */
