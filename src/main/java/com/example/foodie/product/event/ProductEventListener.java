@@ -1,8 +1,10 @@
-package com.example.foodie.product.service;
+package com.example.foodie.product.event;
 
+import com.example.foodie.order.event.OrderCancelledEvent;
 import com.example.foodie.order.event.OrderPlacedEvent;
 import com.example.foodie.product.internal.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
@@ -12,19 +14,21 @@ import org.springframework.stereotype.Component;
  * product module never imports anything from order module's internals.
  */
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class ProductEventListener {
 
     private final ProductRepository productRepository;
 
     @ApplicationModuleListener
-    void onOrderPlaced(OrderPlacedEvent event) {
-        for (OrderPlacedEvent.OrderItem item : event.items()) {
+    void onOrderCancelled(OrderCancelledEvent event) {
+        for (OrderCancelledEvent.OrderItem item : event.items()) {
             productRepository.findById(item.productId()).ifPresent(product -> {
-                int newStock = product.getStockQuantity() - item.quantity();
-                product.setStockQuantity(Math.max(newStock, 0));
-                if (newStock <= 0) product.setAvailable(false);
+                product.setStockQuantity(product.getStockQuantity() + item.quantity());
+                product.setAvailable(true);
                 productRepository.save(product);
+                log.info("Stock restored for product: {} quantity: {}",
+                        product.getName(), item.quantity());
             });
         }
     }

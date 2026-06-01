@@ -1,11 +1,15 @@
 package com.example.foodie.order.service;
 
+import com.example.foodie.order.dto.OrderDto;
+import com.example.foodie.order.event.OrderCancelledEvent;
 import com.example.foodie.order.event.OrderPlacedEvent;
 import com.example.foodie.order.event.OrderStatusChangedEvent;
-import com.example.foodie.order.dto.OrderDto;
 import com.example.foodie.order.internal.Order;
 import com.example.foodie.order.internal.OrderItem;
 import com.example.foodie.order.internal.OrderRepository;
+import com.example.foodie.order.internal.OrderStatus;
+import com.example.foodie.product.dto.ProductDto;
+import com.example.foodie.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,7 +23,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ApplicationEventPublisher events;
-
+    private final ProductService productService;
 
     @Transactional
     public OrderDto.OrderResponse placeOrder(OrderDto.PlaceOrderRequest request) {
@@ -29,71 +33,139 @@ public class OrderService {
         order.setDeliveryAddress(request.deliveryAddress());
         order.setNotes(request.notes());
 
-        // Build order items from request — no cross-module call here
         BigDecimal total = BigDecimal.ZERO;
         for (OrderDto.OrderItemRequest itemReq : request.items()) {
+
+            ProductDto.ProductResponse product = productService
+                    .validateAndGetProduct(itemReq.productId(), request.farmerId(), itemReq.quantity());
+
+            BigDecimal subtotal = product.price()
+                    .multiply(BigDecimal.valueOf(itemReq.quantity()));
+
             OrderItem item = new OrderItem();
-            item.setProductId(itemReq.productId());
-            item.setProductName(itemReq.productName());
+            item.setProductId(product.id());
+            item.setProductName(product.name());
             item.setQuantity(itemReq.quantity());
-            item.setUnitPrice(itemReq.unitPrice());
-            BigDecimal subtotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
+            item.setUnitPrice(product.price());
             item.setSubtotal(subtotal);
             total = total.add(subtotal);
             order.getItems().add(item);
         }
+
         order.setTotalPrice(total);
         Order saved = orderRepository.save(order);
 
-        // Publish event — product module will deduct stock, notification module will alert farmer
         List<OrderPlacedEvent.OrderItem> eventItems = request.items().stream()
-            .map(i -> new OrderPlacedEvent.OrderItem(i.productId(), i.productName(), i.quantity()))
-            .toList();
-        events.publishEvent(new OrderPlacedEvent(saved.getId(), saved.getUserId(), saved.getFarmerId(), eventItems));
+                .map(i -> new OrderPlacedEvent.OrderItem(i.productId(), i.quantity()))
+                .toList();
+        events.publishEvent(new OrderPlacedEvent(
+                saved.getId(), saved.getUserId(), saved.getFarmerId(), eventItems));
 
         return toResponse(saved);
     }
 
     public OrderDto.OrderResponse findById(String id) {
         return orderRepository.findById(id)
-            .map(this::toResponse)
-            .orElseThrow(() -> new RuntimeException("Order not found: " + id));
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
     }
 
     public List<OrderDto.OrderResponse> findByUser(String userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId)
-            .stream().map(this::toResponse).toList();
+                .stream().map(this::toResponse).toList();
     }
 
     public List<OrderDto.OrderResponse> findByFarmer(String farmerId) {
         return orderRepository.findByFarmerIdOrderByCreatedAtDesc(farmerId)
-            .stream().map(this::toResponse).toList();
+                .stream().map(this::toResponse).toList();
     }
 
     @Transactional
     public OrderDto.OrderResponse updateStatus(String orderId, String status) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
-        order.setStatus(Order.OrderStatus.valueOf(status.toUpperCase()));
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+        order.setStatus(OrderStatus.valueOf(status.toUpperCase()));
         Order saved = orderRepository.save(order);
 
-        // Publish event — notification module will alert the consumer
         events.publishEvent(new OrderStatusChangedEvent(
-            saved.getId(), saved.getUserId(), saved.getFarmerId(), saved.getStatus().name()
+                saved.getId(), saved.getUserId(), saved.getFarmerId(), saved.getStatus().name()
         ));
 
         return toResponse(saved);
     }
 
+    public List<OrderDto.OrderResponse> findByUserAndStatus(String userId, String status) {
+        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase().trim());
+        return orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, orderStatus)
+                .stream().map(this::toResponse).toList();
+    }
+
+    public List<OrderDto.OrderResponse> findByFarmerAndStatus(String farmerId, String status) {
+        OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase().trim());
+        return orderRepository.findByFarmerIdAndStatusOrderByCreatedAtDesc(farmerId, orderStatus)
+                .stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public OrderDto.OrderResponse cancelOrder(String orderId, String userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        // Only the consumer who placed the order can cancel
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("You can only cancel your own orders");
+        }
+
+        // Can only cancel PLACED or CONFIRMED orders
+        if (order.getStatus() == OrderStatus.SHIPPED ||
+                order.getStatus() == OrderStatus.DELIVERED ||
+                order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Order saved = orderRepository.save(order);
+
+        // Publish event — product module will restore stock
+        List<OrderCancelledEvent.OrderItem> eventItems = saved.getItems().stream()
+                .map(i -> new OrderCancelledEvent.OrderItem(i.getProductId(), i.getQuantity()))
+                .toList();
+        events.publishEvent(new OrderCancelledEvent(
+                saved.getId(), saved.getUserId(), saved.getFarmerId(), eventItems
+        ));
+
+        return toResponse(saved);
+    }
+
+    public boolean hasActiveOrdersForProduct(String productId) {
+        return orderRepository.existsByItemsProductIdAndStatusIn(
+                productId,
+                List.of(OrderStatus.PLACED, OrderStatus.CONFIRMED,
+                        OrderStatus.PREPARING, OrderStatus.SHIPPED)
+        );
+    }
+
+    public boolean isOrderDelivered(String orderId) {
+        return orderRepository.findById(orderId)
+                .map(o -> o.getStatus() == OrderStatus.DELIVERED)
+                .orElse(false);
+    }
+
+    public boolean isOrderOwner(String orderId, String userId) {
+        return orderRepository.findById(orderId)
+                .map(o -> o.getUserId().equals(userId))
+                .orElse(false);
+    }
+
     private OrderDto.OrderResponse toResponse(Order o) {
         List<OrderDto.OrderItemResponse> items = o.getItems().stream().map(i ->
-            new OrderDto.OrderItemResponse(i.getProductId(), i.getProductName(),
-                i.getQuantity(), i.getUnitPrice(), i.getSubtotal())
+                new OrderDto.OrderItemResponse(i.getProductId(), i.getProductName(),
+                        i.getQuantity(), i.getUnitPrice(), i.getSubtotal())
         ).toList();
         return new OrderDto.OrderResponse(
-            o.getId(), o.getUserId(), o.getFarmerId(), o.getStatus().name(),
-            o.getTotalPrice(), o.getDeliveryAddress(), o.getNotes(),
-            items, o.getCreatedAt(), o.getUpdatedAt()
+                o.getId(), o.getUserId(), o.getFarmerId(), o.getStatus().name(),
+                o.getTotalPrice(), o.getDeliveryAddress(), o.getNotes(),
+                items, o.getCreatedAt(), o.getUpdatedAt()
         );
     }
 }

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -31,6 +33,17 @@ public class UserService {
         return userRepository.findById(id)
             .map(this::toResponse)
             .orElseThrow(() -> new RuntimeException("User not found: " + id));
+    }
+
+    public List<UserDto.UserResponse> findAll() {
+        return userRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    public void delete(String id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found: " + id);
+        }
+        userRepository.deleteById(id);
     }
 
     private UserDto.UserResponse toResponse(User u) {

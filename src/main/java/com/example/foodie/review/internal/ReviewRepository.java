@@ -17,4 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, String> {
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.farmerId = :farmerId")
     Double avgRatingByFarmer(@Param("farmerId") String farmerId);
+
+    boolean existsByUserIdAndProductIdAndOrderId(String userId, String productId, String orderId);
 }

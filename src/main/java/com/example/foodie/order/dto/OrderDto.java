@@ -12,8 +12,8 @@ public class OrderDto {
     public record OrderItemRequest(
         @NotBlank String productId,
         @NotBlank String productName,  // client sends this — no cross-module lookup needed
-        @Positive int quantity,
-        @Positive BigDecimal unitPrice // client sends current price at time of order
+        @Positive int quantity
+//        @Positive BigDecimal unitPrice // client sends current price at time of order
     ) {}
 
     public record PlaceOrderRequest(

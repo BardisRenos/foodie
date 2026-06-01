@@ -1,15 +1,12 @@
 package com.example.foodie.notification.service;
 
+import com.example.foodie.order.event.OrderCancelledEvent;
 import com.example.foodie.order.event.OrderPlacedEvent;
 import com.example.foodie.order.event.OrderStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Listens for order events and sends notifications to the right people.
- * Notification module depends on public events only — never on order internals.
- */
 @Component
 @RequiredArgsConstructor
 public class NotificationEventListener {
@@ -18,19 +15,17 @@ public class NotificationEventListener {
 
     @ApplicationModuleListener
     void onOrderPlaced(OrderPlacedEvent event) {
-        // Notify the farmer about the new order
         notificationService.send(
-            event.farmerId(), "FARMER",
-            "New order received!",
-            "You have a new order #" + event.orderId() + " with " + event.items().size() + " item(s).",
-            event.orderId()
+                event.farmerId(), "FARMER",
+                "New order received!",
+                "You have a new order #" + event.orderId() + " with " + event.items().size() + " item(s).",
+                event.orderId()
         );
-        // Notify the consumer that the order was placed
         notificationService.send(
-            event.userId(), "USER",
-            "Order placed successfully",
-            "Your order #" + event.orderId() + " has been placed and is awaiting confirmation.",
-            event.orderId()
+                event.userId(), "USER",
+                "Order placed successfully",
+                "Your order #" + event.orderId() + " has been placed and is awaiting confirmation.",
+                event.orderId()
         );
     }
 
@@ -38,10 +33,26 @@ public class NotificationEventListener {
     void onOrderStatusChanged(OrderStatusChangedEvent event) {
         String message = "Your order #" + event.orderId() + " status is now: " + event.newStatus();
         notificationService.send(
-            event.userId(), "USER",
-            "Order update: " + event.newStatus(),
-            message,
-            event.orderId()
+                event.userId(), "USER",
+                "Order update: " + event.newStatus(),
+                message,
+                event.orderId()
+        );
+    }
+
+    @ApplicationModuleListener
+    void onOrderCancelled(OrderCancelledEvent event) {
+        notificationService.send(
+                event.farmerId(), "FARMER",
+                "Order cancelled",
+                "Order #" + event.orderId() + " has been cancelled by the consumer.",
+                event.orderId()
+        );
+        notificationService.send(
+                event.userId(), "USER",
+                "Order cancelled successfully",
+                "Your order #" + event.orderId() + " has been cancelled.",
+                event.orderId()
         );
     }
 }

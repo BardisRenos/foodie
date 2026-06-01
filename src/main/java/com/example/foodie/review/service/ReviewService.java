@@ -1,5 +1,6 @@
 package com.example.foodie.review.service;
 
+import com.example.foodie.order.service.OrderService;
 import com.example.foodie.review.dto.ReviewDto;
 import com.example.foodie.review.internal.Review;
 import com.example.foodie.review.internal.ReviewRepository;
@@ -14,9 +15,38 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final OrderService orderService;
 
     @CacheEvict(value = "reviews", allEntries = true)
     public ReviewDto.ReviewResponse create(ReviewDto.CreateRequest request) {
+
+        // Validate order exists and is DELIVERED
+        if (request.orderId() != null) {
+            boolean isDelivered = orderService.isOrderDelivered(request.orderId());
+            if (!isDelivered) {
+                throw new IllegalStateException(
+                        "You can only review products from delivered orders"
+                );
+            }
+
+            // Validate the user owns this order
+            boolean isOwner = orderService.isOrderOwner(request.orderId(), request.userId());
+            if (!isOwner) {
+                throw new IllegalStateException("You can only review your own orders");
+            }
+        }
+
+        // Prevent duplicate review
+        boolean alreadyReviewed = reviewRepository
+                .existsByUserIdAndProductIdAndOrderId(
+                        request.userId(), request.productId(), request.orderId()
+                );
+        if (alreadyReviewed) {
+            throw new IllegalStateException(
+                    "You have already reviewed this product for this order"
+            );
+        }
+
         Review r = new Review();
         r.setUserId(request.userId());
         r.setProductId(request.productId());

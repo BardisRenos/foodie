@@ -7,11 +7,14 @@ import java.util.List;
  * Other modules (product, notification) listen to this event
  * instead of being called directly — this is the Spring Modulith way.
  */
-public record OrderPlacedEvent(String orderId, String userId, String farmerId, List<OrderItem> items) {
+public record OrderPlacedEvent(
+        String orderId,
+        String userId,
+        String farmerId,
+        List<OrderItem> items
+) {
     public record OrderItem(
             String productId,
-            String productName,
-            int quantity) {
-
-    }
+            int quantity
+    ) {}
 }

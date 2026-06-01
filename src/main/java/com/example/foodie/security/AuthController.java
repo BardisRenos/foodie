@@ -13,6 +13,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenBlacklist tokenBlacklist;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login/user")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
@@ -22,6 +23,11 @@ public class AuthController {
     @PostMapping("/login/farmer")
     public ResponseEntity<AuthResponse> loginFarmer(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.loginFarmer(request.email(), request.password()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestParam String refreshToken) {
+        return ResponseEntity.ok(refreshTokenService.refresh(refreshToken));
     }
 
     @PostMapping("/logout")

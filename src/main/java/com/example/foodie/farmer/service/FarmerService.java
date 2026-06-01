@@ -49,6 +49,31 @@ public class FarmerService {
             .stream().map(this::toResponse).toList();
     }
 
+    public List<FarmerDto.FarmerResponse> findAll() {
+        return farmerRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    public FarmerDto.FarmerResponse verify(String id) {
+        Farmer farmer = farmerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Farmer not found: " + id));
+        farmer.setVerified(true);
+        return toResponse(farmerRepository.save(farmer));
+    }
+
+    public FarmerDto.FarmerResponse unverify(String id) {
+        Farmer farmer = farmerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Farmer not found: " + id));
+        farmer.setVerified(false);
+        return toResponse(farmerRepository.save(farmer));
+    }
+
+    public void delete(String id) {
+        if (!farmerRepository.existsById(id)) {
+            throw new RuntimeException("Farmer not found: " + id);
+        }
+        farmerRepository.deleteById(id);
+    }
+
     private FarmerDto.FarmerResponse toResponse(Farmer f) {
         return new FarmerDto.FarmerResponse(
             f.getId(), f.getFullName(), f.getEmail(), f.getPhone(),
