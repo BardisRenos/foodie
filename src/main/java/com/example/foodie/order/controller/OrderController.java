@@ -25,18 +25,30 @@ public class OrderController {
         return ResponseEntity.ok(orderService.findById(id));
     }
 
+    @GetMapping("/user/{userId}/status/{status}")
+    public ResponseEntity<List<OrderDto.OrderResponse>> getByUserAndStatus(@PathVariable String userId, @PathVariable String status) {
+        return ResponseEntity.ok(orderService.findByUserAndStatus(userId, status));
+    }
+
+    @GetMapping("/farmer/{farmerId}/status/{status}")
+    public ResponseEntity<List<OrderDto.OrderResponse>> getByFarmerAndStatus(@PathVariable String farmerId, @PathVariable String status) {
+        return ResponseEntity.ok(orderService.findByFarmerAndStatus(farmerId, status));
+    }
+
     @GetMapping
-    public ResponseEntity<List<OrderDto.OrderResponse>> list(
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String farmerId) {
+    public ResponseEntity<List<OrderDto.OrderResponse>> list(@RequestParam(required = false) String userId, @RequestParam(required = false) String farmerId) {
         if (userId != null) return ResponseEntity.ok(orderService.findByUser(userId));
         if (farmerId != null) return ResponseEntity.ok(orderService.findByFarmer(farmerId));
         return ResponseEntity.badRequest().build();
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<OrderDto.OrderResponse> updateStatus(
-            @PathVariable String id, @RequestParam String status) {
+    public ResponseEntity<OrderDto.OrderResponse> updateStatus(@PathVariable String id, @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateStatus(id, status));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<OrderDto.OrderResponse> cancel(@PathVariable String id, @RequestParam String userId) {
+        return ResponseEntity.ok(orderService.cancelOrder(id, userId));
     }
 }

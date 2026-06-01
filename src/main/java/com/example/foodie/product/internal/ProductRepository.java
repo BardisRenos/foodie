@@ -1,5 +1,7 @@
 package com.example.foodie.product.internal;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,11 +13,11 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByFarmerId(String farmerId);
     List<Product> findByCategory(Category category);
-    List<Product> findByAvailableTrue();
-    List<Product> findByAvailableTrueAndCategory(Category category);
+    Page<Product> findByAvailableTrue(Pageable pageable);
+    Page<Product> findByAvailableTrueAndCategory(Category category, Pageable pageable);
+
 
     @Query("SELECT p FROM Product p WHERE p.available = true AND " +
-           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%')))")
-    List<Product> search(@Param("q") String query);
+            "(LOWER(p.name) LIKE :q OR LOWER(p.description) LIKE :q)")
+    Page<Product> search(@Param("q") String query, Pageable pageable);
 }

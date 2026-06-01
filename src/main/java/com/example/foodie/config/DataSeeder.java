@@ -132,8 +132,7 @@ public class DataSeeder {
         log.info("Seeded {} products", productRepository.count());
     }
 
-    private void saveProduct(String name, String description, BigDecimal price,
-                             String unit, int stock, Category category, String farmerId) {
+    private void saveProduct(String name, String description, BigDecimal price, String unit, int stock, Category category, String farmerId) {
         Product p = new Product();
         p.setName(name);
         p.setDescription(description);

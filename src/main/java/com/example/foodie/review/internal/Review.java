@@ -11,7 +11,11 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "reviews")
+@Table(name = "reviews", indexes = {
+        @Index(name = "idx_review_product", columnList = "productId"),
+        @Index(name = "idx_review_farmer", columnList = "farmerId"),
+        @Index(name = "idx_review_user", columnList = "userId")
+})
 public class Review {
 
     @Id

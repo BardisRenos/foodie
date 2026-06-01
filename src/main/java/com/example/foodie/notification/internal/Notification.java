@@ -9,7 +9,10 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+        @Index(name = "idx_notification_recipient", columnList = "recipientId"),
+        @Index(name = "idx_notification_read", columnList = "read")
+})
 public class Notification {
 
     @Id

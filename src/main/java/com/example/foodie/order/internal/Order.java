@@ -12,7 +12,12 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_order_user", columnList = "userId"),
+        @Index(name = "idx_order_farmer", columnList = "farmerId"),
+        @Index(name = "idx_order_status", columnList = "status"),
+        @Index(name = "idx_order_created", columnList = "createdAt")
+})
 public class Order {
 
     @Id
@@ -39,8 +44,4 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public enum OrderStatus {
-        PLACED, CONFIRMED, PREPARING, SHIPPED, DELIVERED, CANCELLED
-    }
 }
