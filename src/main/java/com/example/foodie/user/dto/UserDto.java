@@ -13,8 +13,15 @@ public class UserDto {
         String address
     ) {}
 
+    public record UpdateRequest(
+            String fullName,
+            String phone,
+            String address
+    ) {}
+
     public record UserResponse(
         String id,
+        String userId,
         String fullName,
         String email,
         String phone,

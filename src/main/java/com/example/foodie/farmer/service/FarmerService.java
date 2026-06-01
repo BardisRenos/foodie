@@ -22,6 +22,7 @@ public class FarmerService {
             throw new IllegalArgumentException("Email already in use: " + request.email());
         }
         Farmer farmer = new Farmer();
+        farmer.setFarmerId(generateFarmerId());
         farmer.setFullName(request.fullName());
         farmer.setEmail(request.email());
         farmer.setPassword(passwordEncoder.encode(request.password()));
@@ -29,6 +30,7 @@ public class FarmerService {
         farmer.setFarmName(request.farmName());
         farmer.setFarmLocation(request.farmLocation());
         farmer.setDescription(request.description());
+        farmer.setVerified(false);
         return toResponse(farmerRepository.save(farmer));
     }
 
@@ -74,9 +76,36 @@ public class FarmerService {
         farmerRepository.deleteById(id);
     }
 
+    public FarmerDto.FarmerResponse update(String id, FarmerDto.UpdateRequest request) {
+        Farmer farmer = farmerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Farmer not found: " + id));
+
+        if (request.fullName() != null && !request.fullName().isBlank()) {
+            farmer.setFullName(request.fullName());
+        }
+        if (request.phone() != null && !request.phone().isBlank()) {
+            farmer.setPhone(request.phone());
+        }
+        if (request.farmName() != null && !request.farmName().isBlank()) {
+            farmer.setFarmName(request.farmName());
+        }
+        if (request.farmLocation() != null && !request.farmLocation().isBlank()) {
+            farmer.setFarmLocation(request.farmLocation());
+        }
+        if (request.description() != null && !request.description().isBlank()) {
+            farmer.setDescription(request.description());
+        }
+        return toResponse(farmerRepository.save(farmer));
+    }
+
+    private String generateFarmerId() {
+        long count = farmerRepository.count() + 1;
+        return String.format("FRM-%06d", count);
+    }
+
     private FarmerDto.FarmerResponse toResponse(Farmer f) {
         return new FarmerDto.FarmerResponse(
-            f.getId(), f.getFullName(), f.getEmail(), f.getPhone(),
+            f.getId(), f.getFarmerId(), f.getFullName(), f.getEmail(), f.getPhone(),
             f.getFarmName(), f.getFarmLocation(), f.getDescription(), f.isVerified()
         );
     }

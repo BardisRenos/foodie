@@ -3,6 +3,7 @@ package com.example.foodie.transaction.service;
 import com.example.foodie.transaction.internal.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +15,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
 
+    @Async
     public void record(String actorId, ActorType actorType,
                        TransactionType type, String relatedEntityId,
                        String description, TransactionStatus status) {

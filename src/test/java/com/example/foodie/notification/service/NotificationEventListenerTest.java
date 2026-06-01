@@ -25,7 +25,7 @@ class NotificationEventListenerTest {
     void onOrderPlaced_shouldNotifyFarmer() {
         OrderPlacedEvent event = new OrderPlacedEvent(
                 "o1", "u1", "f1",
-                List.of(new OrderPlacedEvent.OrderItem("p1", "Tomatoes", 2))
+                List.of(new OrderPlacedEvent.OrderItem("p1", 2))
         );
 
         notificationEventListener.onOrderPlaced(event);
@@ -43,7 +43,7 @@ class NotificationEventListenerTest {
     void onOrderPlaced_shouldNotifyConsumer() {
         OrderPlacedEvent event = new OrderPlacedEvent(
                 "o1", "u1", "f1",
-                List.of(new OrderPlacedEvent.OrderItem("p1", "Tomatoes", 2))
+                List.of(new OrderPlacedEvent.OrderItem("p1", 2))
         );
 
         notificationEventListener.onOrderPlaced(event);
@@ -61,7 +61,7 @@ class NotificationEventListenerTest {
     void onOrderPlaced_shouldSendTwoNotifications_oneForFarmerOneForUser() {
         OrderPlacedEvent event = new OrderPlacedEvent(
                 "o1", "u1", "f1",
-                List.of(new OrderPlacedEvent.OrderItem("p1", "Tomatoes", 2))
+                List.of(new OrderPlacedEvent.OrderItem("p1", 2))
         );
 
         notificationEventListener.onOrderPlaced(event);
@@ -74,9 +74,9 @@ class NotificationEventListenerTest {
         OrderPlacedEvent event = new OrderPlacedEvent(
                 "o1", "u1", "f1",
                 List.of(
-                        new OrderPlacedEvent.OrderItem("p1", "Tomatoes", 2),
-                        new OrderPlacedEvent.OrderItem("p2", "Cucumbers", 1),
-                        new OrderPlacedEvent.OrderItem("p3", "Zucchini", 3)
+                        new OrderPlacedEvent.OrderItem("p1",2),
+                        new OrderPlacedEvent.OrderItem("p2",1),
+                        new OrderPlacedEvent.OrderItem("p3",3)
                 )
         );
 

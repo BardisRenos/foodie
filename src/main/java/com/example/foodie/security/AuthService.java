@@ -19,6 +19,7 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final TransactionService transactionService;
+    private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final FarmerRepository farmerRepository;
     private final JwtUtils jwtUtils;
@@ -29,22 +30,50 @@ public class AuthService {
         );
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        String token = jwtUtils.generateToken(user.getEmail(), user.getRole().name(), user.getId());
-        return new AuthResponse(token, user.getId(), user.getFullName(), user.getRole().name());
+
+        String accessToken = jwtUtils.generateToken(
+                user.getEmail(), user.getRole().name(), user.getUserId()
+        );
+        String refreshToken = refreshTokenService.createRefreshToken(
+                user.getEmail(), user.getRole().name(), user.getUserId()
+        );
+
+        transactionService.record(
+                user.getId(), ActorType.USER,
+                TransactionType.LOGIN, null,
+                "User logged in", TransactionStatus.SUCCESS
+        );
+
+        return new AuthResponse(accessToken, refreshToken,
+                user.getId(), user.getFullName(), user.getRole().name());
     }
 
     public AuthResponse loginFarmer(String email, String password) {
         Farmer farmer = farmerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
-        String token = jwtUtils.generateToken(farmer.getEmail(), "FARMER", farmer.getId());
-        return new AuthResponse(token, farmer.getId(), farmer.getFullName(), "FARMER");
+
+        String accessToken = jwtUtils.generateToken(
+                farmer.getEmail(), "FARMER", farmer.getId()
+        );
+        String refreshToken = refreshTokenService.createRefreshToken(
+                farmer.getEmail(), "FARMER", farmer.getId()
+        );
+
+        transactionService.record(
+                farmer.getId(), ActorType.FARMER,
+                TransactionType.LOGIN, null,
+                "Farmer logged in", TransactionStatus.SUCCESS
+        );
+
+        return new AuthResponse(accessToken, refreshToken,
+                farmer.getId(), farmer.getFullName(), "FARMER");
     }
 
     public String logout(String token) {
-        // record transaction - get email from token to find actor
         String email = jwtUtils.getEmail(token);
 
         userRepository.findByEmail(email).ifPresent(user ->
@@ -54,7 +83,7 @@ public class AuthService {
                         "User logged out", TransactionStatus.SUCCESS
                 )
         );
-        // check farmers too
+
         farmerRepository.findByEmail(email).ifPresent(farmer ->
                 transactionService.record(
                         farmer.getId(), ActorType.FARMER,
@@ -62,6 +91,7 @@ public class AuthService {
                         "Farmer logged out", TransactionStatus.SUCCESS
                 )
         );
+
         return email;
     }
 }

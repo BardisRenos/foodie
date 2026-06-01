@@ -6,6 +6,7 @@ import com.example.foodie.product.internal.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,6 +21,7 @@ public class ProductEventListener {
 
     private final ProductRepository productRepository;
 
+    @Async
     @ApplicationModuleListener
     void onOrderCancelled(OrderCancelledEvent event) {
         for (OrderCancelledEvent.OrderItem item : event.items()) {

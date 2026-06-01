@@ -14,13 +14,16 @@ import java.time.LocalDateTime;
 @Table(name = "farmers", indexes = {
         @Index(name = "idx_farmer_email", columnList = "email"),
         @Index(name = "idx_farmer_location", columnList = "farmLocation"),
-        @Index(name = "idx_farmer_verified", columnList = "verified")
+        @Index(name = "idx_farmer_fullName", columnList = "fullName")
 })
 public class Farmer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @Column(unique = true, nullable = false, updatable = false)
+    private String farmerId;
 
     @NotBlank
     private String fullName;

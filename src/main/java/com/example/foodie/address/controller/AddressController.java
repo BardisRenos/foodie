@@ -5,12 +5,14 @@ import com.example.foodie.address.service.AddressService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users/{userId}/addresses")
+@PreAuthorize("hasRole('CONSUMER')")
 public class AddressController {
 
     private final AddressService addressService;

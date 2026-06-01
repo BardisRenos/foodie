@@ -4,6 +4,7 @@ import com.example.foodie.farmer.dto.FarmerDto;
 import com.example.foodie.farmer.service.FarmerService;
 import com.example.foodie.user.dto.UserDto;
 import com.example.foodie.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,11 @@ public class AdminController {
 
     private final UserService userService;
     private final FarmerService farmerService;
+
+    @PostMapping("/admin/users")
+    public ResponseEntity<UserDto.UserResponse> createAdmin(@Valid @RequestBody UserDto.RegisterRequest request) {
+        return ResponseEntity.ok(userService.registerAdmin(request));
+    }
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDto.UserResponse>> getAllUsers() {

@@ -1,5 +1,6 @@
 package com.example.foodie.review.service;
 
+import com.example.foodie.order.service.OrderQueryService;
 import com.example.foodie.order.service.OrderService;
 import com.example.foodie.review.dto.ReviewDto;
 import com.example.foodie.review.internal.Review;
@@ -15,23 +16,17 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final OrderService orderService;
+    private final OrderQueryService orderQueryService;
 
     @CacheEvict(value = "reviews", allEntries = true)
     public ReviewDto.ReviewResponse create(ReviewDto.CreateRequest request) {
 
         // Validate order exists and is DELIVERED
         if (request.orderId() != null) {
-            boolean isDelivered = orderService.isOrderDelivered(request.orderId());
-            if (!isDelivered) {
-                throw new IllegalStateException(
-                        "You can only review products from delivered orders"
-                );
+            if (!orderQueryService.isOrderDelivered(request.orderId())) {
+                throw new IllegalStateException("You can only review products from delivered orders");
             }
-
-            // Validate the user owns this order
-            boolean isOwner = orderService.isOrderOwner(request.orderId(), request.userId());
-            if (!isOwner) {
+            if (!orderQueryService.isOrderOwner(request.orderId(), request.userId())) {
                 throw new IllegalStateException("You can only review your own orders");
             }
         }

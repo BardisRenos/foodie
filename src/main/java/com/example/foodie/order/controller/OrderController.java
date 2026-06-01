@@ -5,6 +5,7 @@ import com.example.foodie.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -16,26 +17,31 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
+    @PreAuthorize("hasRole('CONSUMER')")
     public ResponseEntity<OrderDto.OrderResponse> place(@Valid @RequestBody OrderDto.PlaceOrderRequest request) {
         return ResponseEntity.ok(orderService.placeOrder(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CONSUMER', 'FARMER', 'ADMIN')")
     public ResponseEntity<OrderDto.OrderResponse> getOrder(@PathVariable String id) {
         return ResponseEntity.ok(orderService.findById(id));
     }
 
     @GetMapping("/user/{userId}/status/{status}")
+    @PreAuthorize("hasAnyRole('CONSUMER', 'ADMIN')")
     public ResponseEntity<List<OrderDto.OrderResponse>> getByUserAndStatus(@PathVariable String userId, @PathVariable String status) {
         return ResponseEntity.ok(orderService.findByUserAndStatus(userId, status));
     }
 
     @GetMapping("/farmer/{farmerId}/status/{status}")
+    @PreAuthorize("hasAnyRole('FARMER', 'CONSUMER', 'ADMIN')")
     public ResponseEntity<List<OrderDto.OrderResponse>> getByFarmerAndStatus(@PathVariable String farmerId, @PathVariable String status) {
         return ResponseEntity.ok(orderService.findByFarmerAndStatus(farmerId, status));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('CONSUMER', 'FARMER', 'ADMIN')")
     public ResponseEntity<List<OrderDto.OrderResponse>> list(@RequestParam(required = false) String userId, @RequestParam(required = false) String farmerId) {
         if (userId != null) return ResponseEntity.ok(orderService.findByUser(userId));
         if (farmerId != null) return ResponseEntity.ok(orderService.findByFarmer(farmerId));
@@ -43,11 +49,13 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public ResponseEntity<OrderDto.OrderResponse> updateStatus(@PathVariable String id, @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateStatus(id, status));
     }
 
     @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('CONSUMER', 'FARMER')")
     public ResponseEntity<OrderDto.OrderResponse> cancel(@PathVariable String id, @RequestParam String userId) {
         return ResponseEntity.ok(orderService.cancelOrder(id, userId));
     }

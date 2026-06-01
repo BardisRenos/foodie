@@ -1,7 +1,6 @@
 package com.example.foodie.product.service;
 
-import com.example.foodie.order.internal.OrderRepository;
-import com.example.foodie.order.internal.OrderStatus;
+import com.example.foodie.order.service.OrderQueryService;
 import com.example.foodie.order.service.OrderService;
 import com.example.foodie.product.dto.ProductDto;
 import com.example.foodie.product.internal.Category;
@@ -23,8 +22,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final OrderRepository orderRepository;
-    private final OrderService orderService;
+    private final OrderQueryService orderQueryService;
 
     @CacheEvict(value = "products", allEntries = true)
     public ProductDto.ProductResponse create(ProductDto.CreateRequest request) {
@@ -100,10 +98,9 @@ public class ProductService {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found: " + id);
         }
-        if (orderService.hasActiveOrdersForProduct(id)) {
+        if (orderQueryService.hasActiveOrdersForProduct(id)) {
             throw new IllegalStateException(
-                    "Cannot delete product — it has active orders. " +
-                            "Mark it unavailable instead."
+                    "Cannot delete product — it has active orders. Mark it unavailable instead."
             );
         }
         productRepository.deleteById(id);

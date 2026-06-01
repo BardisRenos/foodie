@@ -13,7 +13,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "products")
+@Table(name = "products", indexes = {
+        @Index(name = "idx_product_farmer", columnList = "farmerId"),
+        @Index(name = "idx_product_category", columnList = "category"),
+        @Index(name = "idx_product_available", columnList = "available"),
+        @Index(name = "idx_product_name", columnList = "name")
+})
 public class Product {
 
     @Id

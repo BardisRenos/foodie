@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_user_id", columnList = "userId"),
         @Index(name = "idx_user_fullName", columnList = "fullName")
 })
 public class User {
@@ -21,6 +22,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @Column(unique = true, nullable = false, updatable = false)
+    private String userId; // e.g. USR-000001
 
     @NotBlank
     private String fullName;

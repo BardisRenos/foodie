@@ -5,6 +5,7 @@ import com.example.foodie.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -16,23 +17,23 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
+    @PreAuthorize("hasRole('CONSUMER')")
     public ResponseEntity<ReviewDto.ReviewResponse> create(@Valid @RequestBody ReviewDto.CreateRequest request) {
         return ResponseEntity.ok(reviewService.create(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewDto.ReviewResponse>> list(
-            @RequestParam(required = false) String productId,
-            @RequestParam(required = false) String farmerId) {
+    @PreAuthorize("hasRole('CONSUMER', 'ADMIN')")
+    public ResponseEntity<List<ReviewDto.ReviewResponse>> list(@RequestParam(required = false) String productId,
+                                                               @RequestParam(required = false) String farmerId) {
         if (productId != null) return ResponseEntity.ok(reviewService.findByProduct(productId));
         if (farmerId != null) return ResponseEntity.ok(reviewService.findByFarmer(farmerId));
         return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/rating")
-    public ResponseEntity<Double> avgRating(
-            @RequestParam(required = false) String productId,
-            @RequestParam(required = false) String farmerId) {
+    @PreAuthorize("hasRole('CONSUMER')")
+    public ResponseEntity<Double> avgRating(@RequestParam(required = false) String productId, @RequestParam(required = false) String farmerId) {
         if (productId != null) return ResponseEntity.ok(reviewService.avgRatingForProduct(productId));
         if (farmerId != null) return ResponseEntity.ok(reviewService.avgRatingForFarmer(farmerId));
         return ResponseEntity.badRequest().build();

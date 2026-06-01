@@ -15,8 +15,17 @@ public class FarmerDto {
         String description
     ) {}
 
+    public record UpdateRequest(
+            String fullName,
+            String phone,
+            String farmName,
+            String farmLocation,
+            String description
+    ) {}
+
     public record FarmerResponse(
         String id,
+        String farmerId,
         String fullName,
         String email,
         String phone,

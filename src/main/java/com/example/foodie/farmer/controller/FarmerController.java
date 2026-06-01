@@ -5,6 +5,7 @@ import com.example.foodie.farmer.service.FarmerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class FarmerController {
     private final FarmerService farmerService;
 
     @PostMapping("/auth/farmers/register")
+    @PreAuthorize("hasRole('FARMER')")
     public ResponseEntity<FarmerDto.FarmerResponse> register(@Valid @RequestBody FarmerDto.RegisterRequest request) {
         return ResponseEntity.ok(farmerService.register(request));
     }
@@ -25,9 +27,15 @@ public class FarmerController {
         return ResponseEntity.ok(farmerService.findById(id));
     }
 
+    @PutMapping("/farmers/{id}")
+    @PreAuthorize("hasRole('FARMER')")
+    public ResponseEntity<FarmerDto.FarmerResponse> update(@PathVariable String id, @RequestBody FarmerDto.UpdateRequest request) {
+        return ResponseEntity.ok(farmerService.update(id, request));
+    }
+
     @GetMapping("/farmers")
-    public ResponseEntity<List<FarmerDto.FarmerResponse>> listFarmers(
-            @RequestParam(required = false) String location) {
+    @PreAuthorize("hasAnyRole('CONSUMER', 'FARMER', 'ADMIN')")
+    public ResponseEntity<List<FarmerDto.FarmerResponse>> listFarmers(@RequestParam(required = false) String location) {
         if (location != null) {
             return ResponseEntity.ok(farmerService.findByLocation(location));
         }

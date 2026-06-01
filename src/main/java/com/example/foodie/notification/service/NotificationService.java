@@ -3,6 +3,7 @@ package com.example.foodie.notification.service;
 import com.example.foodie.notification.internal.Notification;
 import com.example.foodie.notification.internal.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
+    @Async
     public void send(String recipientId, String recipientType, String title, String message, String orderId) {
         Notification n = new Notification();
         n.setRecipientId(recipientId);

@@ -5,6 +5,7 @@ import com.example.foodie.transaction.internal.TransactionType;
 import com.example.foodie.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Transaction>> list(
             @RequestParam(required = false) String actorId,
             @RequestParam(required = false) TransactionType type) {

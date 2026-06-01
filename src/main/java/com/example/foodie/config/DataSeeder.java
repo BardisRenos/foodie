@@ -40,6 +40,7 @@ public class DataSeeder {
         if (userRepository.count() > 0) return;
 
         User john = new User();
+        john.setUserId("USR-000001");
         john.setFullName("John Consumer");
         john.setEmail("john@example.com");
         john.setPassword(passwordEncoder.encode("password123"));
@@ -49,6 +50,7 @@ public class DataSeeder {
         userRepository.save(john);
 
         User maria = new User();
+        maria.setUserId("USR-000002");
         maria.setFullName("Maria Consumer");
         maria.setEmail("maria@example.com");
         maria.setPassword(passwordEncoder.encode("password123"));
@@ -58,6 +60,7 @@ public class DataSeeder {
         userRepository.save(maria);
 
         User admin = new User();
+        admin.setUserId("USR-000003");
         admin.setFullName("Admin User");
         admin.setEmail("admin@foodie.com");
         admin.setPassword(passwordEncoder.encode("admin123"));
@@ -73,6 +76,7 @@ public class DataSeeder {
         if (farmerRepository.count() > 0) return;
 
         Farmer nikos = new Farmer();
+        nikos.setFarmerId("FRM-000001");
         nikos.setFullName("Nikos Farmer");
         nikos.setEmail("nikos@farm.com");
         nikos.setPassword(passwordEncoder.encode("password123"));
@@ -84,6 +88,7 @@ public class DataSeeder {
         farmerRepository.save(nikos);
 
         Farmer elena = new Farmer();
+        elena.setFarmerId("FRM-000002");
         elena.setFullName("Elena Farmer");
         elena.setEmail("elena@farm.com");
         elena.setPassword(passwordEncoder.encode("password123"));
@@ -95,6 +100,7 @@ public class DataSeeder {
         farmerRepository.save(elena);
 
         Farmer kostas = new Farmer();
+        kostas.setFarmerId("FRM-000003");
         kostas.setFullName("Kostas Farmer");
         kostas.setEmail("kostas@farm.com");
         kostas.setPassword(passwordEncoder.encode("password123"));

@@ -107,26 +107,40 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto.OrderResponse cancelOrder(String orderId, String userId) {
+    public OrderDto.OrderResponse cancelOrder(String orderId, String actorId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
-        // Only the consumer who placed the order can cancel
-        if (!order.getUserId().equals(userId)) {
-            throw new RuntimeException("You can only cancel your own orders");
+        // Consumer can cancel their own order
+        // Farmer can cancel an order assigned to them
+        boolean isConsumer = order.getUserId().equals(actorId);
+        boolean isFarmer = order.getFarmerId().equals(actorId);
+
+        if (!isConsumer && !isFarmer) {
+            throw new RuntimeException("You are not authorized to cancel this order");
         }
 
-        // Can only cancel PLACED or CONFIRMED orders
-        if (order.getStatus() == OrderStatus.SHIPPED ||
+        // Consumer can only cancel PLACED orders
+        if (isConsumer && order.getStatus() != OrderStatus.PLACED) {
+            throw new IllegalStateException(
+                    "Consumer can only cancel orders with status PLACED. Current status: "
+                            + order.getStatus()
+            );
+        }
+
+        // Farmer can cancel PLACED or CONFIRMED orders
+        if (isFarmer && (order.getStatus() == OrderStatus.SHIPPED ||
                 order.getStatus() == OrderStatus.DELIVERED ||
-                order.getStatus() == OrderStatus.CANCELLED) {
-            throw new RuntimeException("Cannot cancel order with status: " + order.getStatus());
+                order.getStatus() == OrderStatus.CANCELLED)) {
+            throw new IllegalStateException(
+                    "Farmer cannot cancel order with status: " + order.getStatus()
+            );
         }
 
         order.setStatus(OrderStatus.CANCELLED);
         Order saved = orderRepository.save(order);
 
-        // Publish event — product module will restore stock
+        // Publish event — stock restored, notifications sent
         List<OrderCancelledEvent.OrderItem> eventItems = saved.getItems().stream()
                 .map(i -> new OrderCancelledEvent.OrderItem(i.getProductId(), i.getQuantity()))
                 .toList();
@@ -135,26 +149,6 @@ public class OrderService {
         ));
 
         return toResponse(saved);
-    }
-
-    public boolean hasActiveOrdersForProduct(String productId) {
-        return orderRepository.existsByItemsProductIdAndStatusIn(
-                productId,
-                List.of(OrderStatus.PLACED, OrderStatus.CONFIRMED,
-                        OrderStatus.PREPARING, OrderStatus.SHIPPED)
-        );
-    }
-
-    public boolean isOrderDelivered(String orderId) {
-        return orderRepository.findById(orderId)
-                .map(o -> o.getStatus() == OrderStatus.DELIVERED)
-                .orElse(false);
-    }
-
-    public boolean isOrderOwner(String orderId, String userId) {
-        return orderRepository.findById(orderId)
-                .map(o -> o.getUserId().equals(userId))
-                .orElse(false);
     }
 
     private OrderDto.OrderResponse toResponse(Order o) {

@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -36,15 +36,15 @@ class FarmerControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private FarmerService farmerService;
 
-    @MockBean
+    @MockitoBean
     private JwtUtils jwtUtils;
 
     private FarmerDto.FarmerResponse farmerResponse() {
         return new FarmerDto.FarmerResponse(
-                "f1", "Nikos Farmer", "nikos@farm.com",
+                "f1", "FRM-0001","Nikos Farmer", "nikos@farm.com",
                 "6911111111", "Nikos Fresh Farm", "Crete, Greece",
                 "Fresh organic vegetables", true
         );
